@@ -1,0 +1,381 @@
+A
+
+def ChampagnePapi21(n, source):
+    count = [0, 0, 0]
+
+    i = 0
+    while i < n:
+        ch = source[i]
+        if ch == 'a':
+            count[0] = count[0] + 1
+        elif ch == 'b':
+            count[1] = count[1] + 1
+        else:
+            count[2] = count[2] + 1
+        i = i + 1
+
+    return count
+
+def longliveDrizzy(n, rival):
+    suf = []
+    i = 0
+    while i <= n:
+        suf.append([0, 0, 0])
+        i = i + 1
+
+    pos = n - 1
+    while pos >= 0:
+        suf[pos][0] = suf[pos + 1][0]
+        suf[pos][1] = suf[pos + 1][1]
+        suf[pos][2] = suf[pos + 1][2]
+
+        ch = rival[pos]
+        if ch == 'a':
+            suf[pos][0] = suf[pos][0] + 1
+        elif ch == 'b':
+            suf[pos][1] = suf[pos][1] + 1
+        else:
+            suf[pos][2] = suf[pos][2] + 1
+
+        pos = pos - 1
+
+    return suf
+
+def solve():
+    s = input().strip()
+
+    n = int(s)
+
+    if n < 1 or n > 5000:
+        print(-2)
+        return
+
+    source = input().strip()
+    rival = input().strip()
+
+    count = ChampagnePapi21(n, source)
+    suf = longliveDrizzy(n, rival)
+
+    answer = []
+
+    i = 0
+    while i < n:
+        tried = 0
+
+        while tried < 3:
+            if tried == 0:
+                ch = 'a'
+                idx = 0
+            elif tried == 1:
+                ch = 'b'
+                idx = 1
+            else:
+                ch = 'c'
+                idx = 2
+
+            if count[idx] > 0 and ch != rival[i]:
+                count[idx] = count[idx] - 1
+
+                rest = n - i - 1
+                ok = True
+
+                letter = 0
+                while letter < 3:
+                    limit = rest - suf[i + 1][letter]
+                    if count[letter] > limit:
+                        ok = False
+                        break
+                    letter = letter + 1
+
+                if ok:
+                    answer.append(ch)
+                    break
+
+                count[idx] = count[idx] + 1
+
+            tried = tried + 1
+
+        i = i + 1
+
+    print(''.join(answer))
+
+if __name__ == '__main__':
+    solve()
+
+C
+
+from fractions import Fraction
+
+def ChampagnePapi21(v, children):
+    subs = []
+
+    i = 0
+    size = len(children[v])
+    while i < size:
+        to = children[v][i]
+        subs.append(ChampagnePapi21(to, children))
+        i = i + 1
+
+    subs.sort()
+    ret = tuple(subs)
+    return ret
+
+def longliveDrizzy(node):
+    result = []
+
+    def dfs(cur, path, prob):
+        k = len(cur)
+        step = prob / Fraction(k + 1, 1)
+
+        result.append((path, step))
+
+        i = 0
+        while i < k:
+            child = cur[i]
+            next_path = path + (i,)
+            dfs(child, next_path, step)
+            i = i + 1
+
+    dfs(node, tuple(), Fraction(1, 1))
+    return result
+
+def SixGodCooking(node, path):
+    if len(path) == 0:
+        children = []
+
+        i = 0
+        size = len(node)
+        while i < size:
+            children.append(node[i])
+            i = i + 1
+
+        children.append(tuple())
+        children.sort()
+
+        ret = tuple(children)
+        return ret
+
+    idx = path[0]
+    children = []
+
+    i = 0
+    size = len(node)
+    while i < size:
+        child = node[i]
+        if i == idx:
+            child = SixGodCooking(child, path[1:])
+        children.append(child)
+        i = i + 1
+
+    children.sort()
+    ret = tuple(children)
+    return ret
+
+def qliphotProbabilities(n):
+    start = (tuple(),)
+
+    states = {}
+    states[start] = Fraction(1, 1)
+
+    age = 1
+    while age < n:
+        next_states = {}
+
+        for shape, prob in states.items():
+            moves = longliveDrizzy(shape)
+
+            j = 0
+            while j < len(moves):
+                path = moves[j][0]
+                p_move = moves[j][1]
+
+                new_shape = SixGodCooking(shape, path)
+                add = prob * p_move
+
+                if new_shape in next_states:
+                    next_states[new_shape] = next_states[new_shape] + add
+                else:
+                    next_states[new_shape] = add
+
+                j = j + 1
+
+        states = next_states
+        age = age + 1
+
+    return states
+
+def fractionToString(value):
+    num = value.numerator
+    den = value.denominator
+
+    whole = num // den
+    rem = num % den
+
+    if rem == 0:
+        ret = str(whole) + '.0'
+        return ret
+
+    digits = []
+    limit = 30
+    cnt = 0
+
+    while rem != 0 and cnt < limit:
+        rem = rem * 10
+        digit = rem // den
+        rem = rem % den
+        digits.append(str(digit))
+        cnt = cnt + 1
+
+    ret = str(whole) + '.' + ''.join(digits)
+    return ret
+
+def solve():
+    s = input().strip()
+    n = int(s)
+
+    children = []
+    i = 0
+    while i <= n:
+        children.append([])
+        i = i + 1
+
+    need = 2 * n
+    tokens = []
+
+    while len(tokens) < need:
+        try:
+            line = input().split()
+        except EOFError:
+            break
+
+        j = 0
+        while j < len(line):
+            tokens.append(int(line[j]))
+            j = j + 1
+
+    e = 0
+    pos = 0
+    while e < n and pos + 1 < len(tokens):
+        a = tokens[pos]
+        b = tokens[pos + 1]
+        children[a].append(b)
+
+        pos = pos + 2
+        e = e + 1
+
+    target = ChampagnePapi21(0, children)
+
+    probs = qliphotProbabilities(n)
+    if target in probs:
+        ans = probs[target]
+    else:
+        ans = Fraction(0, 1)
+
+    out = fractionToString(ans)
+    print(out)
+
+if __name__ == '__main__':
+    solve()
+
+
+D 
+
+12.04.2026
+85
+желтый
+
+E
+
+51181.706050908586 0.0
+
+F
+
+17354
+
+G
+
+def ChampagnePapi21(n):
+    week_minutes = 10080
+
+    if n % 2 == 0:
+        return -1
+
+    if n == 1:
+        return 0
+
+    distance = (n - 1) // 2
+    upper_bound = week_minutes / (2.0 * distance * distance)
+
+    if upper_bound < 0.95:
+        return -1
+
+    meet_probability = longliveDrizzy(n, week_minutes)
+
+    if meet_probability < 0.95:
+        return -1
+
+    expectation = n * n - 1
+    return expectation
+
+def longliveDrizzy(n, week_minutes):
+    if n == 1:
+        return 1.0
+
+    probability = [0.0] * n
+    start_state = 1 % n
+    probability[start_state] = 1.0
+
+    minute = 0
+    while minute < week_minutes:
+        next_probability = [0.0] * n
+
+        state = 1
+        while state < n:
+            current_value = probability[state]
+
+            if current_value != 0.0:
+                stay_value = current_value * 0.5
+                next_probability[state] = next_probability[state] + stay_value
+
+                right_state = state + 2
+                if right_state >= n:
+                    right_state = right_state - n
+
+                if right_state != 0:
+                    move_right_value = current_value * 0.25
+                    next_probability[right_state] = (
+                        next_probability[right_state] + move_right_value
+                    )
+
+                left_state = state - 2
+                if left_state < 0:
+                    left_state = left_state + n
+
+                if left_state != 0:
+                    move_left_value = current_value * 0.25
+                    next_probability[left_state] = (
+                        next_probability[left_state] + move_left_value
+                    )
+
+            state = state + 1
+
+        probability = next_probability
+        minute = minute + 1
+
+    survive_probability = 0.0
+    state = 1
+    while state < n:
+        survive_probability = survive_probability + probability[state]
+        state = state + 1
+
+    meet_probability = 1.0 - survive_probability
+    return meet_probability
+
+def solve():
+    s = input().strip()
+    n = int(s)
+    answer = ChampagnePapi21(n)
+    print(answer)
+
+if __name__ == '__main__':
+    solve()
